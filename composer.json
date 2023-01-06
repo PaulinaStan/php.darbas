@@ -1,0 +1,16 @@
+{
+    "name": "paulina/projekto_failai",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Paulina Stanaityte"
+        }
+    ],
+    "require": {
+        "monolog/monolog": "2.8.0",
+        "larapack/dd": "^1.1"
+    },
+    "autoload": {
+        "psr-4": {"Pau\\": "src\\"}
+    }
+}

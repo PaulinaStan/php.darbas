@@ -2,6 +2,7 @@
 
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
+use Pau\Authenticator;
 use Pau\Controllers\AdminController;
 use Pau\Controllers\KontaktaiController;
 use Pau\Controllers\PortfolioController;
@@ -22,9 +23,9 @@ $output = new Output();
 try {
     session_start();
 
-//    // Autentifikuojam vartotoja, tikrinam jo prisijungimo busena
-//    $authenticator = new Authenticator();
-//    $authenticator->authenticate($_POST['username'] ?? null, $_POST['password'] ?? null);
+    $authenticator = new Authenticator();
+    $adminController = new AdminController($authenticator);
+    $kontaktaiController = new KontaktaiController($log);
 
     $router = new Router();
     $router->addRoute('GET', '', [new PradziaController(), 'index']);

@@ -1,52 +1,52 @@
 <?php
 
-use Monolog\Handler\StreamHandler;
+use Appsas\Authenticator;
+use Appsas\Controllers\AdminController;
+use Appsas\Controllers\KontaktaiController;
+use Appsas\Controllers\PersonController;
+use Appsas\Controllers\PradziaController;
+use Appsas\ExceptionHandler;
+use Appsas\Output;
+use Appsas\Router;
+use DI\ContainerBuilder;
 use Monolog\Logger;
-use Pau\Authenticator;
-use Pau\Controllers\AdminController;
-use Pau\Controllers\KontaktaiController;
-use Pau\Controllers\PortfolioController;
-use Pau\Controllers\PradziaController;
-use Pau\Exceptions\MissingVariableException;
-use Pau\Exceptions\UnauthenticatedException;
-use Pau\Output;
-use Pau\Router;
+use Monolog\Handler\StreamHandler;
 
 require __DIR__ . '/../vendor/autoload.php';
-require __DIR__ . "/../vendor/larapack/dd/src/helper.php";
+require __DIR__ . '/../vendor/larapack/dd/src/helper.php';
 
-$log = new Logger('Portfolio');
-$log->pushHandler(new StreamHandler('../logs/klaidos.log', Logger::WARNING));
+$log = new Logger('Portfolios');
+$log->pushHandler(new StreamHandler('../logs/klaidos.log', Logger::INFO));
 
 $output = new Output();
 
 try {
     session_start();
 
-    $authenticator = new Authenticator();
-    $adminController = new AdminController($authenticator);
-    $kontaktaiController = new KontaktaiController($log);
+    $containerBuilder = new ContainerBuilder();
+    $container = $containerBuilder->build();
 
-    $router = new Router();
+    $adminController = $container->get(AdminController::class);
+    $kontaktaiController = $container->get(KontaktaiController::class);
+    $personController = $container->get(PersonController::class);
+
+    $router = $container->get(Router::class);
     $router->addRoute('GET', '', [new PradziaController(), 'index']);
-    $router->addRoute('GET', 'admin', [new AdminController(), 'index']);
-    $router->addRoute('GET', 'kontaktai', [new KontaktaiController(), 'index']);
-    $router->addRoute('GET', 'portfolio', [new PortfolioController(), 'index']);
+    $router->addRoute('GET', 'admin', [$adminController, 'index']);
+    $router->addRoute('POST', 'login', [$adminController, 'login']);
+    $router->addRoute('GET', 'logout', [$adminController, 'logout']);
+    $router->addRoute('GET', 'kontaktai', [$kontaktaiController, 'index']);
+    $router->addRoute('GET', 'persons', [$personController, 'list']);
+    $router->addRoute('GET', 'person/new', [$personController, 'new']);
+    $router->addRoute('GET', 'person/delete', [$personController, 'delete']);
+    $router->addRoute('GET', 'person/edit', [$personController, 'edit']);
+    $router->addRoute('GET', 'person/show', [$personController, 'show']);
+    $router->addRoute('POST', 'person', [$personController, 'store']);
+    $router->addRoute('POST', 'person/update', [$personController, 'update']);
     $router->run();
-
-} catch (\Pau\Exceptions\PageNotFoundException $e) {
-    $output->store('Neradau puslapio');
-    $log->warning($e->getMessage());
-} catch (UnauthenticatedException $e) {
-    $output->store('Neteisingi prisijungimo duomenys');
-    $log->warning($e->getMessage());
-} catch (MissingVariableException $e) {
-    $output->store('Kilo klaida templeite.');
-    $log->warning($e->getMessage());
-} catch (Exception $e) {
-    $output->store('Oi nutiko klaida! Bandyk vėliau dar karta.');
-    $log->error($e->getMessage());
 }
-
-// Spausdinam viska kas buvo 'Storinta' Output klaseje
-$output->print();
+catch (Exception $e) {
+    $handler = new ExceptionHandler($output, $log);
+    $handler->handle($e);
+    $output->print();
+}

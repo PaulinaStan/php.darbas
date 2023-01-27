@@ -1,0 +1,77 @@
+USE `akademija`;
+
+#Kiek 'useriu' kurių 'state' yra 'Inactive'  būsenoje.
+
+SELECT Count(*)
+from users
+JOIN states ON users.state = states.id
+WHERE states.title = 'Suspended';
+
+SELECT distinct state from users;
+
+#Kiek 'gruops' kuriu 'state' yra 'Active' būsenoje.
+
+ SELECT Count(*)
+from `groups`
+JOIN states s ON `groups`.title = s.id
+WHERE s.title = 'Active';
+
+SELECT distinct state from groups;
+
+#paSELECTinti iš 'persons' lentelės įrašus kurie turi
+# 'address_id' , ekrane rodyti tik 'persons.first_name' , 'persons.last_name',
+    #address.city' ir 'countries.title' pilną šalies pavadinimą kur jis gyvena.
+
+SELECT persons.first_name, persons.last_name, addresses.city, countries.title
+FROM persons
+         JOIN addresses ON persons.address_id = addresses.id
+         JOIN countries ON addresses.country_iso = countries.iso;
+
+#Suskaičiuoti kiek yra studentų tik aktyviose "Active" grupėse.
+    #Pavaizduoti Grupės pavadinimą ir studentų skaičių tose grupese.
+
+SELECT Count(*)
+from person2gruop
+         JOIN states ON states.title = states.id
+         JOIN `groups` ON person2gruop.groups_id = `groups`.id
+WHERE `groups`.title = 'Active';
+
+SELECT groups_suspended.id, groups_suspended.title AS suspended_groups, COUNT(person_id) AS kiekis_studentu FROM person2gruop
+JOIN (
+    SELECT * FROM `groups` WHERE state IN (SELECT id FROM states WHERE title LIKE 'Suspended')) AS groups_suspended
+    ON person2gruop.groups_id = groups_suspended.id
+    GROUP BY groups_suspended.id;
+
+#Atvaizduoti tik dieninių (Kai grupės pavadinimas baigiasi 'D' raide) studijų studentų:
+
+#sarasa
+SELECT p.*, g.title AS group_title FROM person2gruop
+LEFT JOIN persons p ON p.id = person2gruop.person_id
+LEFT JOIN `groups` g ON g.id = person2gruop.groups_id
+WHERE g.title LIKE '%D';
+
+#bendra skaiciu
+SELECT count(p.id) AS studentu_skaicius FROM person2gruop
+LEFT JOIN persons p ON p.id = person2gruop.person_id
+LEFT JOIN `groups` g ON g.id = person2gruop.groups_id
+WHERE g.title LIKE '%D';
+
+
+
+#Pavaizduoti pasirinktos grupės studentus ir pilną adresą viename stulpelyje.
+# (Užklausos salygoje ieskoti pagal grupės pavadinimą ne ID)
+
+SELECT p.first_name,p.last_name, concat(a.country_iso, a.city, a.street, a.postcode)
+FROM person2gruop
+LEFT JOIN persons AS p ON person2gruop.person_id = p.id
+LEFT JOIN `groups` AS g ON person2gruop.groups_id = g.id
+LEFT JOIN addresses a ON g.address_id = a.id
+ORDER BY p.first_name asc;
+
+
+#Surasti visus asmenis (‘persons’) kurie neturi vardo (first_name’) arba pavardės (‘last_name’)
+# ir turi neaktyvų (‘Inactive’) vartotoją (‘users’’)
+# (Jei tokių duomenų nėra prieš atliekant užduotį reikia pakoreguoti persons lentos  duomenis
+# ir pašalinti keleta vardu ir pavardziu)
+
+

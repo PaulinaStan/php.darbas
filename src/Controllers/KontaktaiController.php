@@ -1,11 +1,15 @@
 <?php
 
-namespace Pau\Controllers;
+namespace Appsas\Controllers;
 
-class KontaktaiController
+use Appsas\FS;
+use Appsas\Response;
+use Monolog\Logger;
+
+class KontaktaiController extends BaseController
 {
-    public function index()
+    public function index(): Response
     {
-        return 'Kontaktai puslapis';
+        return $this->render('kontaktai');
     }
 }

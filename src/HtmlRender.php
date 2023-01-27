@@ -1,31 +1,42 @@
 <?php
 
-namespace Pau;
-
-use Pau\Exceptions\MissingVariableException;
+namespace Appsas;
 
 class HtmlRender extends AbstractRender
 {
-    protected function getContent(): string
+    public function setContent(mixed $content)
     {
-        $failoSistema = new FS('../src/html/Dashboard.html');
-        $failoTurinys = $failoSistema->getFailoTurinys();
+        $fileContent = self::renderTemplate('layout/main', $content);
 
-        $duomMas = [
-            'username' => $_SESSION['username'],
-            'userType' => 'Admin',
-            'loggedInDate' => date('Y-m-d H:i:s'),
-            'nera_sito_raktazodzio' => 'Turi ismesti klaida',
-        ];
+        $this->output->store($fileContent);
+    }
 
-        foreach ($duomMas as $key => $value) {
-            if (!str_contains($failoTurinys, '{{' . $key . '}}')) {
-                throw new MissingVariableException('Nerastas raktazodis: ' . $key);
+    /**
+     * @param string $template
+     * @param mixed $content
+     * @return string
+     */
+    public static function renderTemplate(string $template, mixed $content = null): string
+    {
+        // Iš kontrolerio funkcijos gautą atsakymą talpiname į main.html layout failą
+        $fs = new FS("../src/html/$template.html");
+        $fileContent = $fs->getFailoTurinys();
+//        $title = $this->controller::TITLE;
+//        $fileContent = str_replace("{{title}}", $title, $fileContent);
+        if (is_array($content)) {
+            foreach ($content as $key => $item) {
+                $fileContent = str_replace("{{{$key}}}", $item, $fileContent);
             }
-            $failoTurinys = str_replace('{{' . $key . '}}', $value, $failoTurinys);
+        } elseif (is_string($content)) {
+            $fileContent = str_replace("{{content}}", $content, $fileContent);
         }
 
-        return $failoTurinys;
+        // Išvalomi Templeituose likę {{}} tagai
+        preg_match_all('/{{(.*?)}}/', $fileContent, $matches);
+        foreach ($matches[0] as $key) {
+            $fileContent = str_replace($key, '', $fileContent);
+        }
+
+        return $fileContent;
     }
 }
-

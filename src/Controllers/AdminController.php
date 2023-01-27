@@ -1,13 +1,53 @@
 <?php
 
-namespace Pau\Controllers;
-use Pau\HtmlRender;
-class AdminController
+namespace Appsas\Controllers;
+
+use Appsas\Authenticator;
+use Appsas\Exceptions\UnauthenticatedException;
+use Appsas\Request;
+use Appsas\Response;
+use JetBrains\PhpStorm\NoReturn;
+
+class AdminController extends BaseController
 {
-    public function index()
+    private Authenticator $authenticator;
+    // BAD PRACTICE: DI metu priskirti numatytasias (Default) reiksmes
+    public function __construct(Authenticator $authenticator = null)
     {
-        return 'ADMIN puslapis';
-//        $render = new HtmlRender($output);
-//        $render->render();
+        $this->authenticator = $authenticator ?? new Authenticator();
+        parent::__construct();
+    }
+
+    /**
+     * @throws UnauthenticatedException
+     */
+    public function index(): Response
+    {
+        if (!$this->authenticator->isLoggedIn()) {
+            throw new UnauthenticatedException();
+        }
+
+        return $this->render('admin/dashboard', ['username' => $_SESSION['username']]);
+    }
+
+    /**
+     * @throws UnauthenticatedException
+     */
+    public function login(Request $request): Response
+    {
+        $userName = $request->get('username');
+        $password = $request->get('password');
+
+        if(empty($userName) && empty($password)) {
+            return $this->redirect('/', ['message' => 'Nesupildyti prisijungimo duomenys']);
+        }
+
+        $this->authenticator->login($userName, $password);
+        return $this->redirect('/admin', ['message' => 'Sveikiname prisijungus']);
+    }
+
+    #[NoReturn] public function logout(): Response
+    {
+        $this->authenticator->logout();
     }
 }

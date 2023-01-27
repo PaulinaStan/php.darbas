@@ -1,13 +1,14 @@
 <?php
 
-namespace Pau\Controllers;
-use Pau\FS;
-class PradziaController
+namespace Appsas\Controllers;
+
+use Appsas\Response;
+use Appsas\Request;
+
+class PradziaController extends BaseController
+{
+    public function index(Request $request): Response
     {
-        public function index()
-        {
-            $failoSistema = new FS('../src/html/pradzia.html');
-            $failoTurinys = $failoSistema->getFailoTurinys();
-            return $failoTurinys;
-        }
+        return $this->render('pradzia', $request->all());
+    }
 }

@@ -8,9 +8,10 @@
     ],
     "require": {
         "monolog/monolog": "2.8.0",
-        "larapack/dd": "^1.1"
+        "larapack/dd": "^1.1",
+        "php-di/php-di": "^7.0"
     },
     "autoload": {
-        "psr-4": {"Pau\\": "src\\"}
+        "psr-4": {"Appsas\\": "src\\"}
     }
 }
